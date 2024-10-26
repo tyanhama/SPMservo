@@ -1,36 +1,56 @@
-#include <Arduino.h>
-
 #include "ServoEasing.hpp"
+#include "WiFi.h"
 #include "pin.h"
+#include <Arduino.h>
+#include <esp_now.h>
 
-ServoEasing Servo1;
-ServoEasing Servo2;
+char buf[2];
+
+void OnDataRecv(const uint8_t *mac, const uint8_t *recvData, int len) {
+  memcpy(&buf[0], recvData, len);
+  buf[len] = '\0';
+  auto data = atoi(buf);
+
+  if (data == 1) {  // 左ボタン
+    Serial.println("BtnA");
+    // ここに処理を書く
+  } else if (data == 2) {  // 中央ボタン
+    Serial.println("BtnB");
+    // ここに処理を書く
+  } else if (data == 4) {  // 右ボタン
+    Serial.println("BtnC");
+    // ここに処理を書く
+  } else {
+    Serial.println("Unknown");
+  }
+}
 
 void setup() {
-    Serial.begin(115200);
+  Serial.begin(115200);
 
-    // Just to know which program is running on my Arduino
-    Serial.println(F("START " __FILE__ " from " __DATE__ "\r\nUsing library version " VERSION_SERVO_EASING));
+  delay(500);  // Wait for servo to reach start position.
 
-    /********************************************************
-     * Attach servo to pin and set servo to start position.
-     *******************************************************/
-    Serial.println(F("Attach servo at pin " STR(SERVO1_PIN)));
-    Servo1.attach(SERVO1_PIN, 45);
-    Servo2.attach(SERVO2_PIN, 45);
+  //   ESP Now
+  WiFi.mode(WIFI_STA);  // Wi-FiをStationモードに設定
 
-    delay(500); // Wait for servo to reach start position.
+  // ESP-NOWの初期化
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  esp_now_register_recv_cb(OnDataRecv);
 }
+
+long long last_time;
 
 void loop() {
-    Serial.println(F("Move to 135 degree with 40 degree per second blocking"));
-    Servo2.startEaseTo(135, 40, START_UPDATE_BY_INTERRUPT);
-    Servo1.easeTo(90, 60); // Blocking call, runs on all platforms
-    // Servo2.easeTo(135, 40); // Blocking call, runs on all platforms
-
-    Serial.println(F("Move to 45 degree  with 40 degree per second blocking"));
-    Servo1.easeTo(45, 60); // Blocking call, runs on all platforms
-    Servo2.easeTo(45, 40); // Blocking call, runs on all platforms
-    delay(1000);
+  last_time = millis();
+  while (true) {
+    if (millis() >= last_time + 5 * 1000) {
+      last_time = millis();
+      Serial.print("Mac Address is : ");
+      Serial.println(WiFi.macAddress());
+    }
+  }
 }
-
