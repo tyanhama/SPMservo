@@ -17,9 +17,9 @@ const int minPW = 500;
 const int maxPW = 2400;
 
 const int LED_time = 500;
-long long LED_R = 0; //左
-long long LED_W = 0; //中央
-long long LED_G = 0; //右
+unsigned long LED_R = 0; //左
+unsigned long LED_W = 0; //中央
+unsigned long LED_G = 0; //右
 
 float angle2PW(int angle){
     int angle2 = max(minAngle, min(angle, maxAngle));
@@ -77,7 +77,7 @@ void setup() {
   esp_now_register_recv_cb(OnDataRecv);
 }
 
-long long last_time;
+unsigned long last_time;
 
 void loop() {
   last_time = millis();
