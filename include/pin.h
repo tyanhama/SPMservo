@@ -2,8 +2,10 @@
 #define PIN_H
 
 #define SERVO1_PIN 13
-#define SERVO2_PIN 15
-#define SERVO3_PIN 19
+#define LED_V1 4
+#define LED_V2 5
+#define LED_V3 19
+
 #define SPEED_IN_PIN A0           // 36/VP
 #define MODE_ANALOG_INPUT_PIN A3  // 39
 
