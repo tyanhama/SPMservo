@@ -1,10 +1,26 @@
 #include "ServoEasing.hpp"
+#include <ESP32Servo.h>
 #include "WiFi.h"
 #include "pin.h"
 #include <Arduino.h>
 #include <esp_now.h>
 
 char buf[2];
+Servo myServo;
+
+const int minAngle = -15;
+const int maxAngle = +15;
+const int centerPW = 1450;
+const float PWpAngle = 950/90;
+int global_angle = 0;
+const int minPW = 500;
+const int maxPW = 2400;
+
+float angle2PW(int angle){
+    int angle2 = max(minAngle, min(angle, maxAngle));
+    float PW = centerPW + PWpAngle * angle2;
+    return PW;
+}
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *recvData, int len) {
   memcpy(&buf[0], recvData, len);
@@ -13,13 +29,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *recvData, int len) {
 
   if (data == 1) {  // 左ボタン
     Serial.println("BtnA");
-    // ここに処理を書く
+    global_angle += 1;
+
   } else if (data == 2) {  // 中央ボタン
     Serial.println("BtnB");
-    // ここに処理を書く
+    global_angle = 0;
+
   } else if (data == 4) {  // 右ボタン
     Serial.println("BtnC");
-    // ここに処理を書く
+    global_angle -= 1;
   } else {
     Serial.println("Unknown");
   }
@@ -38,6 +56,9 @@ void setup() {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
+  //サーボ設定
+  myServo.setPeriodHertz(50); // Standard 50hz servo
+  myServo.attach(SERVO1_PIN, minPW, maxPW);
 
   esp_now_register_recv_cb(OnDataRecv);
 }
@@ -52,5 +73,6 @@ void loop() {
       Serial.print("Mac Address is : ");
       Serial.println(WiFi.macAddress());
     }
+    myServo.write(angle2PW(global_angle));
   }
 }
